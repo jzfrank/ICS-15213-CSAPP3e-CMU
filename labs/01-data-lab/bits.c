@@ -206,7 +206,7 @@ int isAsciiDigit(int x)
 {
   // first 7 group is just 30
   // last 4 digit is in 0 to 9 -> minus 10 to see if it is negative
-  // googled a bit... 
+  // googled a bit...
   int leadingPartIs30 = !((x & (0xFFFFFFF0)) ^ 0x00000030);
   int negative10 = (~0xA) + 1;
   int endingPartWithin10 = !((((x & 0xF) + negative10) & 0x80000000) ^ 0x80000000);
@@ -242,9 +242,14 @@ int isLessOrEqual(int x, int y)
   // ! (x > y)
   // ! (y-x < 0)
   // mind the overflow when y and x different sign
+  // googled on how c1, c2
+  int signOfX = (x & 0x80000000) >> 31;
+  int signOfY = (y & 0x80000000) >> 31;
+  int c1 = (signOfX & !signOfY); // x neg, y pos
+  int c2 = (!signOfX & signOfY); // x pos, x neg
   int negativeX = ~x + 1;
-  int subtractionIsNegative = (((y + negativeX) & 0x800000000) ^ 0x80000000);
-  return !subtractionIsNegative;
+  int YminusXIsNegative = (((y + negativeX) & 0x800000000) >> 31);
+  return c1 | (!c2 & !YminusXIsNegative);
 }
 // 4
 /*
@@ -261,6 +266,7 @@ int logicalNeg(int x)
   // then subtracts 1
   // this makes only 0 gets mapped to a negative number
   // then get the signed bit
+  // googled
   int y = (x >> 1 | x) & 0x7FFFFFFF;
   int yMinusOne = y + 0xFFFFFFFF;
   return ((yMinusOne & 0x80000000) >> 31) & 1;
