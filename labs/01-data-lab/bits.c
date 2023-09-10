@@ -206,6 +206,7 @@ int isAsciiDigit(int x)
 {
   // first 7 group is just 30
   // last 4 digit is in 0 to 9 -> minus 10 to see if it is negative
+  // googled a bit... 
   int leadingPartIs30 = !((x & (0xFFFFFFF0)) ^ 0x00000030);
   int negative10 = (~0xA) + 1;
   int endingPartWithin10 = !((((x & 0xF) + negative10) & 0x80000000) ^ 0x80000000);
@@ -220,7 +221,13 @@ int isAsciiDigit(int x)
  */
 int conditional(int x, int y, int z)
 {
-  return 3;
+  // make two needles all one and all zero
+  // (needle1 & y) | (needle2 & z)
+  int notX = !x;
+  int notNotx = !notX;
+  int needle1 = ~notX + 1;
+  int needle2 = ~notNotx + 1;
+  return (needle2 & y) | (needle1 & z);
 }
 /*
  * isLessOrEqual - if x <= y  then return 1, else return 0
@@ -231,10 +238,13 @@ int conditional(int x, int y, int z)
  */
 int isLessOrEqual(int x, int y)
 {
-  int negativeY = ~y + 1;
-  int xMinusY = x + negativeY;
-  int subtractionIsNegative = !((xMinusY & 0x80000000) ^ 0x80000000);
-  return !(x ^ y) | subtractionIsNegative;
+  // x <= y
+  // ! (x > y)
+  // ! (y-x < 0)
+  // mind the overflow when y and x different sign
+  int negativeX = ~x + 1;
+  int subtractionIsNegative = (((y + negativeX) & 0x800000000) ^ 0x80000000);
+  return !subtractionIsNegative;
 }
 // 4
 /*
@@ -393,5 +403,20 @@ int floatFloat2Int(unsigned uf)
  */
 unsigned floatPower2(int x)
 {
-  return 2;
+  if (x > 127)
+  {
+    return 0x7f800000;
+  }
+  if (x < -150)
+  {
+    return 0;
+  }
+  if (-126 <= x && x <= 127)
+  {
+    return ((x + 127)) << 23;
+  }
+  else
+  {
+    return (0x400000 >> (x + 1));
+  }
 }
