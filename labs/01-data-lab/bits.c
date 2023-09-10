@@ -247,8 +247,15 @@ int isLessOrEqual(int x, int y)
  */
 int logicalNeg(int x)
 {
-  return 2;
+  // we should find a way to convert all numbers except 0 to a positive number
+  // then subtracts 1
+  // this makes only 0 gets mapped to a negative number
+  // then get the signed bit
+  int y = (x >> 1 | x) & 0x7FFFFFFF;
+  int yMinusOne = y + 0xFFFFFFFF;
+  return ((yMinusOne & 0x80000000) >> 31) & 1;
 }
+
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
  *  Examples: howManyBits(12) = 5
@@ -263,6 +270,12 @@ int logicalNeg(int x)
  */
 int howManyBits(int x)
 {
+  // if x is positive:
+  //   count by 31 needles
+  // if x is negative:
+  // first negates x
+  // then count number of 1s
+
   return 0;
 }
 // float
