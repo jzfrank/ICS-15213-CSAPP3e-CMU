@@ -274,7 +274,7 @@ int howManyBits(int x)
   //   count by 31 needles
   // if x is negative:
   // first negates x
-  // then count number of 1s
+  // then get highest 1
 
   return 0;
 }
@@ -292,7 +292,34 @@ int howManyBits(int x)
  */
 unsigned floatScale2(unsigned uf)
 {
-  return 2;
+  // case discussions: normalized, denormalized, special values
+  int exp = (uf & (0xFF000000 >> 1)) >> 23;
+  int sign = (uf & 0x80000000) >> 31;
+  int frac = (uf & 0x7FFFFF);
+  if (!(exp ^ (0xFF)))
+  {
+    // special cases: +inf or -inf or NaN
+    return uf;
+  }
+  else if (!(exp ^ 0))
+  {
+    // denormalized case
+    if (frac & 0x400000)
+    {
+      exp += 1;
+      frac = (frac << 1) & 0x7FFFFF;
+    }
+    else
+    {
+      frac = (frac << 1);
+    }
+  }
+  else
+  {
+    // normalized value
+    exp += 1;
+  }
+  return (sign << 31) | (exp << 23) | frac;
 }
 /*
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -308,7 +335,48 @@ unsigned floatScale2(unsigned uf)
  */
 int floatFloat2Int(unsigned uf)
 {
-  return 2;
+  // case discussions: normalized, denormalized, special values
+  int exp = (uf & (0xFF000000 >> 1)) >> 23;
+  int sign = (uf & 0x80000000) >> 31;
+  int frac = (uf & 0x7FFFFF);
+  int res = uf;
+  int E = exp - 127;
+  if (!(exp ^ (0xFF)))
+  {
+    // special cases: +inf or -inf or NaN
+    // happens when exp all 1
+    return 0x80000000u;
+  }
+  else if (!(exp ^ 0))
+  {
+    // denormalized case: exp all 0
+    return 0;
+  }
+  else
+  {
+    // normalized case: exp neither all 0 nor all 1
+    // if E = exp - bias = exp - 127 < 0 -> return 0
+    // if E = exp - 127 > 0 -> left shift frac by E
+    if (E & 0x80000000)
+    {
+      return 0;
+    }
+    else
+    {
+      frac = (frac << E) & 0x7FFFFF;
+    }
+  }
+  int a = 1 << E;
+
+  if ((31 + (~E + 1)) & 0x80000000)
+  { // if overflows
+    return 0x80000000u;
+  }
+
+  if (!(sign ^ 0))
+    return a;
+  else
+    return ~a + 1;
 }
 /*
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
