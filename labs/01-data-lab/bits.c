@@ -286,13 +286,30 @@ int logicalNeg(int x)
  */
 int howManyBits(int x)
 {
-  // if x is positive:
-  //   count by 31 needles
-  // if x is negative:
-  // first negates x
-  // then get highest 1
+  // ggogled...
+  // divide and conquer
+  // check if (x >> 16) is one
+  // if yes, x = x >> 16, then check if (x >> 8) is one ...
+  // essentially, finding the largest 1 position.
+  // Also note, if x is positive: we add position + 1
+  //     if x is negative, we just return the position
+  //     if x is negative, we can first convert it to positive, then howManyBits(-x)
 
-  return 0;
+  // convert x to -x if negative, otherwise just x
+
+  int flag = x >> 31;
+  x = (flag & (~x)) | ((~flag) & x);
+  int b16 = !!(x >> 16) << 4;
+  x = x >> b16;
+  int b8 = !!(x >> 8) << 3;
+  x = x >> b8;
+  int b4 = !!(x >> 4) << 2;
+  x = x >> b4;
+  int b2 = !!(x >> 2) << 1;
+  x = x >> b2;
+  int b1 = !!(x >> 1);
+  x = x >> b1;
+  return x + b1 + b2 + b4 + b8 + b16 + 1;
 }
 // float
 /*
